@@ -19,6 +19,7 @@ Usage (C#/Unity)
 
 Valid options:
     --output: the output directory for generated client-side schema files
+    --outFile: specify a single file to output all client-side schema classes
 ${Object.
     keys(supportedTargets).
     map((targetId) => (
@@ -44,8 +45,13 @@ for (let target in supportedTargets) {
     }
 }
 
-if (!args.output) {
-    console.error("You must provide a valid --output directory.");
+if (args.output && args.outFile) {
+    console.error("You can't use both --output and --outFile at same time.");
+    displayHelp();
+}
+
+if (!args.output && !args.outFile) {
+    console.error("You must provide the --output directory or --outFile filename.");
     displayHelp();
 }
 
@@ -55,10 +61,12 @@ try {
         files: args._,
         decorator: args.decorator,
         output: args.output,
+        outFile: args.outFile,
         namespace: args.namespace
     });
 
 } catch (e) {
     console.error(e.message);
+    console.log(e.stack);
     displayHelp();
 }

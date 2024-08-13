@@ -8,7 +8,7 @@ import {
     OPERATION_MAP_METHODS_NAMES,
 } from './enums';
 import { PackrStream, Unpackr } from 'msgpackr';
-import { Schema } from '../Schema';
+import { Schema, __operationManager, __indexToProperty } from '../Schema';
 
 /*
     MESSAGE FORMAT:
@@ -140,12 +140,28 @@ export class OperationManager {
         this.send();
     }
 
-    private decodeInternal(message: any) {
+    private processOperation(operation: Operation) {
+        
+        
+    }
 
-        const index = message[1];
-        const operation = message[2] as Operation;
+    private decodeInternal(message: any) {
+        const operation = message[1] as Operation;
+        const index = message[2];
         const pathUsage = message[3] as Operation;
 
+        if (operation == Operation.SendWholeSchema) {
+            
+        }
+
+        if (pathUsage == Operation.UsePath) {
+            
+        } 
+
+        const property = this.schema[__indexToProperty][index];
+
+
+        
         console.log(message);
         
     }
@@ -157,8 +173,8 @@ export class OperationManager {
             const referenceId = message[0];
             if (referenceId < 0 && referenceId >= this.references.length) return;
 
-            const schema = this.references[referenceId];
-            const operationManager = (schema as any).__operationManager as OperationManager;
+            const schema = this.references[referenceId] as any;
+            const operationManager = schema[__operationManager] as OperationManager;
 
             operationManager.decodeInternal(message);
         } catch {

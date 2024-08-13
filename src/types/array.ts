@@ -1,4 +1,5 @@
 import { Operation } from '../encoding/enums';
+import { __indexToProperty, __propertyToIndex, __operationManager } from '../Schema';
 
 // This ensures you dont get results like [[[]]] when using nested arrays and just the result
 const cleanNestedArrays = (array: any[], depth: number, count: number = 0): any[] => {
@@ -28,8 +29,8 @@ export const createArrayProxy = (schema: any, propertyName: string, array: any[]
                     return createArrayProxy(schema, propertyName, target[index], false, [...path, index], extraMultiPath, maxDepth);
             }
             
-            const encodeIndex = schema?.__propertyToIndex.get(propertyName);
-            const operationManager = schema?.__operationManager;
+            const encodeIndex = schema[__propertyToIndex].get(propertyName);
+            const operationManager = schema[__operationManager];
 
             // Check if the property is a function on the target
             if (!useGet && typeof target[property as keyof typeof target] === 'function') {
@@ -52,8 +53,8 @@ export const createArrayProxy = (schema: any, propertyName: string, array: any[]
                 return true;
             }
 
-            const encodeIndex = schema?.__propertyToIndex.get(propertyName);
-            const operationManager = schema?.__operationManager;
+            const encodeIndex = schema[__propertyToIndex].get(propertyName);
+            const operationManager = schema[__operationManager];
 
             // Check if property is a valid array index
             if (typeof property === 'string' && !isNaN(Number(property))) {

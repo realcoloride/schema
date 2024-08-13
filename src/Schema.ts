@@ -6,6 +6,10 @@ import { createMapProxy } from './types/map';
 import { OperationManager } from './encoding/operationManager';
 import { createRecordProxy, isRecord } from './types/record';
 
+export const __propertyToIndex = Symbol('propertyToIndex');
+export const __operationManager = Symbol('operationManager');
+export const __indexToProperty = Symbol('indexToProperty');
+
 /*
     MESSAGE FORMAT:
 
@@ -59,10 +63,8 @@ export function createProxySetter(
     if (!instanceInitialized.has(propertyName)) {
         instanceInitialized.add(propertyName);
     } else {
-        const thisAsAny = (this as any);
-
-        const encodeIndex = thisAsAny.__propertyToIndex?.get(propertyName);
-        thisAsAny.__operationManager?.encodeAnything(encodeIndex, Operation.Reset, newVal);
+        const encodeIndex = this[__propertyToIndex]?.get(propertyName);
+        this[__operationManager]?.encodeAnything(encodeIndex, Operation.Reset, newVal);
     }
 
     // Wrap arrays, maps, and nested schemas in proxies
@@ -78,10 +80,8 @@ export function createProxySetter(
     } else if (isRecord(newVal)) {
         newVal = createRecordProxy(this, propertyName, newVal, true);
     } else {
-        const thisAsAny = (this as any);
-
-        const encodeIndex = thisAsAny.__propertyToIndex?.get(propertyName);
-        thisAsAny.__operationManager?.encodeAnything(encodeIndex, Operation.Reset, newVal);
+        const encodeIndex = this[__propertyToIndex]?.get(propertyName);
+        this[__operationManager]?.encodeAnything(encodeIndex, Operation.Reset, newVal);
     }
 
     instanceValues.set(propertyName, newVal);
@@ -117,9 +117,9 @@ export function sync() {
 
 function schemaConstructor<T extends { new(...args: any[]): {} }>(constructor: T) {
     return class extends constructor {
-        private  __propertyToIndex: Map<number, string | symbol> = new Map();
-        private __operationManager: OperationManager;
-        private  __indexToProperty: string[] = [];
+        private  [__propertyToIndex]: Map<number, string | symbol> = new Map();
+        private [__operationManager]: OperationManager;
+        private  [__indexToProperty]: string[] = [];
 
         constructor(...args: any[]) {
             super(...args);
@@ -128,7 +128,7 @@ function schemaConstructor<T extends { new(...args: any[]): {} }>(constructor: T
             const initialValues = args[0] || {};
             Object.keys(initialValues).forEach(key => (this as any)[key] = initialValues[key]);
 
-            this.__operationManager = new OperationManager(this as any);
+            this[__operationManager] = new OperationManager(this as any);
             this.indexProperties();
         }
 
@@ -138,8 +138,8 @@ function schemaConstructor<T extends { new(...args: any[]): {} }>(constructor: T
             // Assign an index to each property
             let index = 0;
             syncedProperties.forEach(property => {
-                this.__indexToProperty.push(property);
-                (this as any).__propertyToIndex.set(property, index);
+                this[__indexToProperty].push(property);
+                (this as any)[__propertyToIndex].set(property, index);
 
                 index++;
             });

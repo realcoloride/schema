@@ -1,5 +1,5 @@
 import { isRecord } from "./record";
-import { createProxySetter } from "../Schema";
+import { createProxySetter, __operationManager, __propertyToIndex } from "../Schema";
 import { Operation } from '../encoding/enums';
 
 export function createMapProxy<K, V>(
@@ -19,8 +19,8 @@ export function createMapProxy<K, V>(
                     let result;
 
                     if (methodName === 'clear') {
-                        const encodeIndex = schema?.__propertyToIndex?.get(propertyName);
-                        schema?.__operationManager?.encodeMapMethod(encodeIndex, methodName, Operation.MapClear, [], multiplePath, []);
+                        const encodeIndex = schema[__propertyToIndex]?.get(propertyName);
+                        schema[__operationManager]?.encodeMapMethod(encodeIndex, methodName, Operation.MapClear, [], multiplePath, []);
                         result = target.clear(); // Perform the actual clear operation
                     } else if (methodName === "get") {
                         result = (target[property as keyof typeof target] as Function).apply(target, args);
@@ -50,8 +50,8 @@ export function createMapProxy<K, V>(
         },
 
         deleteProperty(target, property) {
-            const encodeIndex = schema?.__propertyToIndex?.get(propertyName);
-            schema?.__operationManager?.encodeMapMethod(encodeIndex, "delete", Operation.MapDelete, [property], multiplePath, []);
+            const encodeIndex = schema[__propertyToIndex]?.get(propertyName);
+            schema[__operationManager]?.encodeMapMethod(encodeIndex, "delete", Operation.MapDelete, [property], multiplePath, []);
 
             return Reflect.deleteProperty(target, property);
         }

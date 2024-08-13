@@ -1,9 +1,10 @@
-import { Schema, __operationManager } from "./Schema";
+import { sync, Schema, __operationManager } from "./Schema";
 
 export { Schema } from "./Schema";
 
 class MySchema extends Schema {
-    hello = 0;
+    @sync() hello = 0;
+    @sync() set = new Set<string>();
 }
 
 const schema = new MySchema().assign({ hello: 5 });
@@ -11,6 +12,6 @@ const schema = new MySchema().assign({ hello: 5 });
 schema[__operationManager].encodeEverything();
 schema.hello = 10;
 
-console.log(schema);
-
+schema.set.add("ds");
+console.log(schema.set);
 

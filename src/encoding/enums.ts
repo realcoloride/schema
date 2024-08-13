@@ -56,8 +56,14 @@ export const OPERATION_ARRAY_METHODS = [
 export const OPERATION_SET_METHODS_NAMES: { [ key in string ]: Operation } = {
     "add" : Operation.SetAdd,
     "delete" : Operation.SetDelete,
-    "clear" : Operation.SetClear,
+    "clear" : Operation.SetClear
 };
+export const OPERATION_SET_NAMES_METHODS = {
+    [Operation.SetAdd] : "add",
+    [Operation.SetDelete] : "delete",
+    [Operation.SetClear] : "clear"
+};
+
 
 export const OPERATION_SET_METHODS = [
     "add",

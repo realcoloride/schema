@@ -59,11 +59,12 @@ export function createProxySetter(
 
     const instanceValues = values.get(this)!;
     const instanceInitialized = initialized.get(this)!;
-    //const oldValue = instanceValues.get(propertyName);
+    const oldValue = instanceValues.get(propertyName);
 
     if (!instanceInitialized.has(propertyName)) {
         instanceInitialized.add(propertyName);
     } else {
+        console.log(`Property ${propertyName} changed from ${oldValue} to ${newVal}`);
         const encodeIndex = this[__propertyToIndex]?.get(propertyName);
         this[__operationManager]?.encodeAnything(encodeIndex, Operation.Reset, newVal);
     }
@@ -105,7 +106,6 @@ export function sync() {
             const instanceValues = values.get(this);
             return instanceValues ? instanceValues.get(propertyName) : undefined;
         };
-
 
         Object.defineProperty(target, propertyName, {
             get: getter,

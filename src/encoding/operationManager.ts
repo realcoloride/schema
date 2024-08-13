@@ -1,10 +1,13 @@
 import { 
     Operation, 
     OPERATION_ARRAY_METHODS_NAMES, 
+
     OPERATION_ARRAY_METHODS,
     OPERATION_SET_METHODS_NAMES,
+    OPERATION_SET_NAMES_METHODS,
     OPERATION_SET_METHODS,
     OPERATION_MAP_METHODS,
+
     OPERATION_MAP_METHODS_NAMES,
 } from './enums';
 import { PackrStream, Unpackr } from 'msgpackr';
@@ -128,7 +131,6 @@ export class OperationManager {
         this.send();
     }
     public encodeAnything(index: number, operation: Operation = Operation.Reset, ...parameters: (any)[]) {
-        console.log("encode anything has been called");
         this.begin(operation, undefined, index, undefined);
         this.encodeObject(parameters);
         this.send();
@@ -140,14 +142,33 @@ export class OperationManager {
         this.send();
     }
 
-    private processOperation(operation: Operation) {
-                
+    private quickCallMethod(namesMethods: any, target:any, object:any, operation: Operation) {
+        const methodName = namesMethods[operation];
+        (target[methodName] as Function).apply(object);
+    }
+
+    private processOperation(object: any, property: any, operation: Operation) {
+        const target = this.schema[property];
+        
+        // Reset operations
+
+        // Set<T> operations
+        switch (operation) {
+            case Operation.SetAdd:
+            case Operation.SetDelete:
+            case Operation.SetClear:
+                this.quickCallMethod(OPERATION_SET_NAMES_METHODS, target, object, operation);
+                break;
+        } 
+
+        // Array operations
     }
 
     private decodeInternal(message: any) {
         const operation = message[1] as Operation;
         const index = message[2];
 
+        // if sending whole schema
         if (operation == Operation.SendWholeSchema) {
             const object = message[3];
             
@@ -157,17 +178,15 @@ export class OperationManager {
             } finally { return; }
         }
 
-        
         const pathUsage = message[3] as Operation;
-
-        if (pathUsage == Operation.UsePath) {
-            
-        } 
-
         const property = this.schema[__indexToProperty][index];
 
+        if (pathUsage == Operation.NoPath) {
+            const object = message[4];
+            this.processOperation(object, property, operation);
+            return;
+        } 
 
-        
         console.log(message);
         
     }
@@ -194,7 +213,6 @@ export class OperationManager {
         
 
         OperationManager.decode(buffer);
-        
     }
 
     constructor(schema: Schema) {

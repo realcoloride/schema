@@ -54,7 +54,7 @@ export function createProxySetter(
 
     const instanceValues = values.get(this)!;
     const instanceInitialized = initialized.get(this)!;
-    const oldValue = instanceValues.get(propertyName);
+    //const oldValue = instanceValues.get(propertyName);
 
     if (!instanceInitialized.has(propertyName)) {
         instanceInitialized.add(propertyName);
@@ -148,4 +148,12 @@ function schemaConstructor<T extends { new(...args: any[]): {} }>(constructor: T
 }
 
 @schemaConstructor
-export class Schema {}
+export class Schema {
+    assign(properties: Record<string, any>) {
+        for (const [key, value] of Object.entries(properties))
+            this[key] = value;
+
+        // return for chaining
+        return this;
+    }
+}

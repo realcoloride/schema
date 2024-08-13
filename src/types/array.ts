@@ -1,4 +1,4 @@
-import { Operation, OPERATION_ARRAY_METHODS_NAMES, OPERATION_ARRAY_METHODS } from './enums';
+import { Operation } from '../encoding/enums';
 
 // This ensures you dont get results like [[[]]] when using nested arrays and just the result
 const cleanNestedArrays = (array: any[], depth: number, count: number = 0): any[] => {

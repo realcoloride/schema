@@ -8,7 +8,7 @@ import {
     OPERATION_MAP_METHODS_NAMES,
 } from './enums';
 import { PackrStream, Unpackr } from 'msgpackr';
-import { Schema, __operationManager, __indexToProperty } from '../Schema';
+import { Schema, __operationManager, __indexToProperty, __referenceId } from '../Schema';
 
 /*
     MESSAGE FORMAT:
@@ -40,13 +40,12 @@ export class OperationManager {
     private schema: Schema;
 
     private getReferenceId(): number {
-        var schemaAsAny = (this.schema as any);
-        let referenceId = schemaAsAny.__referenceId;
+        let referenceId = this.schema[__referenceId];
 
         if (referenceId == undefined)  {
             referenceId = OperationManager.references.length;
             OperationManager.references.push(this.schema);
-            schemaAsAny.__referenceId = referenceId;
+            this.schema[__referenceId] = referenceId;
         }
 
         return referenceId;
@@ -129,6 +128,7 @@ export class OperationManager {
         this.send();
     }
     public encodeAnything(index: number, operation: Operation = Operation.Reset, ...parameters: (any)[]) {
+        console.log("encode anything has been called");
         this.begin(operation, undefined, index, undefined);
         this.encodeObject(parameters);
         this.send();
@@ -141,18 +141,24 @@ export class OperationManager {
     }
 
     private processOperation(operation: Operation) {
-        
-        
+                
     }
 
     private decodeInternal(message: any) {
         const operation = message[1] as Operation;
         const index = message[2];
-        const pathUsage = message[3] as Operation;
 
         if (operation == Operation.SendWholeSchema) {
+            const object = message[3];
             
+            try {
+                for (const [key, value] of Object.entries(object))
+                    this[key] = value;
+            } finally { return; }
         }
+
+        
+        const pathUsage = message[3] as Operation;
 
         if (pathUsage == Operation.UsePath) {
             

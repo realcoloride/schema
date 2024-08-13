@@ -9,6 +9,7 @@ import { createRecordProxy, isRecord } from './types/record';
 export const __propertyToIndex = Symbol('propertyToIndex');
 export const __operationManager = Symbol('operationManager');
 export const __indexToProperty = Symbol('indexToProperty');
+export const __referenceId = Symbol('referenceId');
 
 /*
     MESSAGE FORMAT:

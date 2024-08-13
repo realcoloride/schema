@@ -148,20 +148,26 @@ export class OperationManager {
     }
 
     private processOperation(object: any, property: any, operation: Operation) {
-        const target = this.schema[property];
+        // this.schema[property] is temporary until i figure out path/multipath
+        let target = this.schema[property];
         
         // Reset operations
+        if (operation == Operation.Reset) {
+            this.schema[property] = object[0];
+            return;
+        }
 
-        // Set<T> operations
-        switch (operation) {
-            case Operation.SetAdd:
-            case Operation.SetDelete:
-            case Operation.SetClear:
-                this.quickCallMethod(OPERATION_SET_NAMES_METHODS, target, object, operation);
-                break;
-        } 
+        // Set<T> operations and array operations
+        if (operation >= Operation.SetAdd && operation <= Operation.ArrayConcat) {
+            this.quickCallMethod(OPERATION_SET_NAMES_METHODS, target, object, operation);
+            return;
+        }
 
-        // Array operations
+        // ArrayResize/array.length
+        if (operation == Operation.ArrayResize) {
+            target.length = object[0];
+            return;
+        }
     }
 
     private decodeInternal(message: any) {

@@ -58,7 +58,8 @@ export class OperationManager {
         this.changeStream.read();
         this.encodeObject(this.getReferenceId());
         this.encodeObject(operation);
-        if (index) this.encodeObject(index);
+        if (index && index != undefined) this.encodeObject(index);
+        console.log("index", index);
 
         if (operation == Operation.SendWholeSchema) return;
 
@@ -142,7 +143,7 @@ export class OperationManager {
         this.send();
     }
 
-    private quickCallMethod(namesMethods: any, target:any, object:any, operation: Operation) {
+    private quickCallMethod(namesMethods: any, target: any, object: any, operation: Operation) {
         const methodName = namesMethods[operation];
         (target[methodName] as Function).apply(object);
     }
@@ -150,10 +151,13 @@ export class OperationManager {
     private processOperation(object: any, property: any, operation: Operation) {
         // this.schema[property] is temporary until i figure out path/multipath
         let target = this.schema[property];
+        console.log("p", object, property, operation);
+        //const propertyName = namesMethods[operation];
         
         // Reset operations
         if (operation == Operation.Reset) {
-            this.schema[property] = object[0];
+            //target = object[0];
+            console.log("->", object, this.schema[property]);
             return;
         }
 
@@ -165,7 +169,9 @@ export class OperationManager {
 
         // ArrayResize/array.length
         if (operation == Operation.ArrayResize) {
+            console.log("hehe", object);
             target.length = object[0];
+            console.log(target);
             return;
         }
     }
@@ -174,6 +180,7 @@ export class OperationManager {
         const operation = message[1] as Operation;
         const index = message[2];
 
+        console.log(message);
         // if sending whole schema
         if (operation == Operation.SendWholeSchema) {
             const object = message[3];
@@ -188,26 +195,29 @@ export class OperationManager {
         const property = this.schema[__indexToProperty][index];
 
         if (pathUsage == Operation.NoPath) {
-            const object = message[4];
+            const object = operation == Operation.Reset ? message[3] : message[4];
             this.processOperation(object, property, operation);
             return;
         } 
 
-        console.log(message);
         
     }
 
+    static opLimit = 0;//this is for testing purposes
     public static decode(buffer: any) {
         const message = this.unpackr.unpackMultiple(buffer);
 
+        console.log(`decoding buffer length ${buffer.length}`);
+
+        const referenceId = message[0];
+        if (referenceId < 0 && referenceId >= this.references.length) return;
+
+        const schema = this.references[referenceId] as any;
+        const operationManager = schema[__operationManager] as OperationManager;
+        operationManager.decodeInternal(message);
+
+        // later
         try {
-            const referenceId = message[0];
-            if (referenceId < 0 && referenceId >= this.references.length) return;
-
-            const schema = this.references[referenceId] as any;
-            const operationManager = schema[__operationManager] as OperationManager;
-
-            operationManager.decodeInternal(message);
         } catch {
 
         }
@@ -215,8 +225,12 @@ export class OperationManager {
     }
 
     private send() {
+        if (OperationManager.opLimit >= 7) return;
+
         const buffer = this.changeStream.read();
         
+        
+        OperationManager.opLimit++;
 
         OperationManager.decode(buffer);
     }

@@ -26,6 +26,7 @@ export enum Operation {
     ArraySplice,
     ArrayReverse,
     ArrayConcat,
+    ArrayDelete,
     ArrayResize,
 
     // Map operations

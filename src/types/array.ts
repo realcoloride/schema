@@ -1,4 +1,5 @@
 import { Operation } from '../encoding/enums';
+import { OperationManager } from '../encoding/operationManager';
 import { __indexToProperty, __propertyToIndex, __operationManager } from '../Schema';
 
 // This ensures you dont get results like [[[]]] when using nested arrays and just the result
@@ -87,6 +88,24 @@ export const createArrayProxy = (schema: any, propertyName: string, array: any[]
             }
 
             return true;
-        }
+        },
+        deleteProperty: (target, property) => {
+            const encodeIndex = schema[__propertyToIndex].get(propertyName);
+            const operationManager = schema[__operationManager];
+
+            if (typeof property === 'string' && !isNaN(Number(property))) {
+                const index = Number(property);
+                console.log(`Deleting value at path [${[...path, index].join('][')}]`);
+                
+                // Perform the delete operation
+                const success = delete target[index];
+                if (success) {
+                    operationManager?.encodeArrayMethod(encodeIndex, undefined, Operation.ArrayDelete, [...path, index], extraMultiPath, []);
+
+                return success;
+            }
+
+            return delete target[property];
+        }}
     });
 };
